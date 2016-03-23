@@ -1,0 +1,81 @@
+---
+title: "p5 4C"
+author: "Marc Corrales"
+date: "22/03/2016"
+output: html_document
+---
+
+Generate list of dataframes(barcodes) with contacts
+```{r}
+
+# Prepare and load the data
+load('~/ant-login/TRiP_Data/librariesBarcodes.RData') # Sequenced libraries
+exp_fnames <- dir(path = '~/ant-login/fourc/',pattern = '_final.tsv',full.names = T)
+experiments <-  lapply(exp_fnames,read.table,stringsAsFactors=F,col.names=c('barcode','count','chr','strand','pos'))
+names(experiments) <- c('c61b','c61bhs','c61c','c61chs','c61c','c61chs','c61d','c61dhs')
+
+# Remove contaminant barcodes
+contaminants <- subset(libraries, !names(libraries) == 'lib5')
+
+clean_4c <- function(clone){
+  # Remove contaminant barcodes present in other libraries and contacts with pT2
+  contaminants <- unique(Reduce(c,contaminants))
+  toRemove     <- clone$barcode %in% contaminants
+  clean_clone  <- clone[!toRemove | !clone$chr == 'pT2',] 
+}
+
+experiments <- lapply(experiments,clean_4c)
+
+# Cluster per barcode and NlaIII fragment
+
+clust_bcd <- function(cleanClone){
+  top100 <- data.frame(barcode= names(table(cleanClone$barcode)), contacts= as.integer(table(cleanClone$barcode)))
+  top100 <- subset(top100, contacts > 100)
+}
+
+experiments <- lapply(experiments,clust_bcd)
+
+
+
+
+
+#make a list of data.frames, one per barcode
+
+#contacts.top.barcodes<-data.frame(barcode= names(table(clone61B$barcode)), contacts= as.integer(table(clone61B$barcode)))
+#contacts.top.barcodes<- contacts.top.barcodes[order(contacts.top.barcodes$contacts, decreasing=T),]
+#contacts.top.barcodes<- contacts.top.barcodes[contacts.top.barcodes$contacts>100,]
+
+#per.barcode.clone61B<-list()
+#bcds<- as.character(contacts.top.barcodes$barcode)
+
+for (i in bcds){
+  per.barcode.clone61B[[i]]<- subset(clone61B, barcode== i)  
+}
+
+```
+
+
+Clone p5 61b and 61bHS
+```{r}
+# Loading object
+load('~/ant-login/fourc/countsperFragment.RData')
+
+# Lets select only the contacts in the chromosome containing the viewpoint
+c61b <- lapply(clone61b,sel_chr)
+c61bhs <- lapply(clone61bhs,sel_chr)
+# Lets mark the confident peaks
+c61b <- lapply(c61b,function(x) {cbind(x,my4C(x))})
+c61bhs <- lapply(c61bhs,function(x) {cbind(x,my4C(x))})
+
+for (i in 1:length(names(c61b))){
+  if (names(c61b)[i] %in% names(c61bhs)){
+    par(mfrow=c(2,1))
+    bcd <- names(c61b)[i]
+    plot(c61b[[bcd]]$start,c61b[[bcd]]$count,type='h',col=c('black','red')[1 + c61b[[bcd]]$my4C])
+    plot(c61bhs[[bcd]]$start,c61bhs[[bcd]]$count,type='h',col=c('black','red')[1 + c61bhs[[bcd]]$my4C])
+    par(mfrow=c(1,1))
+    }
+  }
+```
+
+
