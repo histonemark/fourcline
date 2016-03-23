@@ -11,38 +11,38 @@ from gzopen import gzopen
 from itertools import izip
 
 TOMAPfname = sys.argv[1] + '_2map'
-# #pdb.set_trace()
-# with gzopen(sys.argv[1]) as f, open(TOMAPfname,'w') as g:
-#    for lineno,line in enumerate(f):
-#       # Is a fastq keep only sequence
-#       if lineno % 4 != 1: continue
-#       # Exact search of NlaIII
-#       brcd = line.rstrip().split('CATG')[0]
-#       if len(brcd) == len(line.rstrip()): continue
-#       seq  = line.rstrip().split('CATG')[1]   
-#       # Cut if there is a MlucI site
-#       dna  = seq.split('AATT')[0]
-#       # Write fasta to map it 
-#       if not 10 < len(brcd) : continue
-#       if not 5 < len(dna): continue 
-#       g.write('>%s\n%s\n' % (brcd,dna))
+#pdb.set_trace()
+with gzopen(sys.argv[1]) as f, open(TOMAPfname,'w') as g:
+   for lineno,line in enumerate(f):
+      # Is a fastq keep only sequence
+      if lineno % 4 != 1: continue
+      # Exact search of NlaIII
+      brcd = line.rstrip().split('CATG')[0]
+      if len(brcd) == len(line.rstrip()): continue
+      seq  = line.rstrip().split('CATG')[1]   
+      # Cut if there is a MlucI site
+      dna  = seq.split('AATT')[0]
+      # Write fasta to map it 
+      if not 10 < len(brcd) < 22 : continue
+      if not 5 < len(dna): continue 
+      g.write('>%s\n%s\n' % (brcd,dna))
 
 
-# # Map the sequences
+# Map the sequences
       
-# outfname = sys.argv[1]  
-# INDEX = '/mnt/shared/seq/gem/dm3R5/dm3R5_pT2_unmasked.gem'
+outfname = sys.argv[1]  
+INDEX = '/mnt/shared/seq/gem/dm3R5/dm3R5_pT2_unmasked.gem'
 
 
-# # System call to `gem-mapper` passing the desired arguments.
-# subprocess.call([
-#    'gem-mapper',
-#    '-I', INDEX ,
-#    '-i', TOMAPfname,
-#    '-o', outfname,
-#    '-m3',
-#    '--unique-mapping',
-#    '-T4'])
+# System call to `gem-mapper` passing the desired arguments.
+subprocess.call([
+   'gem-mapper',
+   '-I', INDEX ,
+   '-i', TOMAPfname,
+   '-o', outfname,
+   '-m3',
+   '--unique-mapping',
+   '-T4'])
 
 # Open the mapped file and keep barcode position if uniquely mapped
 experiment = open(sys.argv[1] + '_experiment.tsv','w')
